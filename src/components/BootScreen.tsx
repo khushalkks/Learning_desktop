@@ -3,12 +3,105 @@ import { useOSStore } from '../store/useOSStore';
 import { Monitor, Terminal, Shield, Cpu, Database, Award } from 'lucide-react';
 
 export const BootScreen: React.FC = () => {
-  const { setLocked, setBooting } = useOSStore();
+  const { setLocked, setBooting, setUser } = useOSStore();
   const [logs, setLogs] = useState<string[]>([]);
   const [progress, setProgress] = useState(0);
   const [bootPhase, setBootPhase] = useState<'bios' | 'login'>('bios');
   const [password, setPassword] = useState('');
   const [isSigningIn, setIsSigningIn] = useState(false);
+  const [showGoogleModal, setShowGoogleModal] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
+
+  const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || '';
+  const hasClientId = !!googleClientId;
+
+  // Handle Google Token decoding
+  const handleGoogleSuccess = (response: any) => {
+    try {
+      const token = response.credential;
+      const base64Url = token.split('.')[1];
+      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+      const jsonPayload = decodeURIComponent(
+        atob(base64)
+          .split('')
+          .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+          .join('')
+      );
+      
+      const payload = JSON.parse(jsonPayload);
+      
+      setUser({
+        name: payload.name,
+        email: payload.email,
+        avatar: payload.picture
+      });
+      
+      setIsSigningIn(true);
+      setTimeout(() => {
+        setIsSigningIn(false);
+        setLocked(false);
+      }, 1000);
+    } catch (e) {
+      console.error('Failed to parse Google OAuth Token:', e);
+      alert('Error parsing Google authentication details.');
+    }
+  };
+
+  // Load Google Client JS dynamically
+  useEffect(() => {
+    if (!hasClientId || bootPhase !== 'login') return;
+
+    const script = document.createElement('script');
+    script.src = 'https://accounts.google.com/gsi/client';
+    script.async = true;
+    script.defer = true;
+    script.onload = () => {
+      try {
+        if ((window as any).google) {
+          (window as any).google.accounts.id.initialize({
+            client_id: googleClientId,
+            callback: handleGoogleSuccess,
+          });
+          
+          const divContainer = document.getElementById('google-signin-div');
+          if (divContainer) {
+            (window as any).google.accounts.id.renderButton(divContainer, {
+              theme: 'filled_blue',
+              size: 'large',
+              width: '280',
+              shape: 'pill'
+            });
+          }
+        }
+      } catch (err) {
+        console.error('Failed to initialize Google accounts:', err);
+      }
+    };
+    document.body.appendChild(script);
+
+    return () => {
+      const element = document.querySelector('script[src="https://accounts.google.com/gsi/client"]');
+      if (element && element.parentNode) {
+        element.parentNode.removeChild(element);
+      }
+    };
+  }, [hasClientId, bootPhase]);
+
+  const handleSimulateGoogle = () => {
+    setShowGoogleModal(false);
+    setGoogleLoading(true);
+    
+    // Simulate loading for authentication
+    setTimeout(() => {
+      setGoogleLoading(false);
+      setUser({
+        name: 'Guest Explorer',
+        email: 'guest.explorer@gmail.com',
+        avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=80&h=80&q=80'
+      });
+      setLocked(false);
+    }, 1500);
+  };
 
   // Twinkling stars state for cosmic theme
   const [stars] = useState(() => {
@@ -228,14 +321,95 @@ export const BootScreen: React.FC = () => {
               <span>SIGN IN</span>
             )}
           </button>
+
+          {/* Google Sign-in Divider */}
+          <div className="flex items-center my-2 w-full">
+            <div className="flex-1 h-px bg-white/10" />
+            <span className="px-3 text-[9px] text-slate-500 font-mono">OR</span>
+            <div className="flex-1 h-px bg-white/10" />
+          </div>
+
+          {/* Google Login button */}
+          <div className="w-full flex justify-center z-10">
+            {hasClientId ? (
+              <div id="google-signin-div" className="w-full flex justify-center" />
+            ) : (
+              <button
+                type="button"
+                onClick={() => setShowGoogleModal(true)}
+                className="w-full py-2.5 bg-slate-900/60 hover:bg-slate-900 border border-slate-700/80 active:scale-95 text-slate-300 hover:text-white text-[10px] font-bold uppercase tracking-wider rounded-xl transition-all flex items-center justify-center space-x-2 shadow-lg"
+              >
+                <svg className="w-4.5 h-4.5" viewBox="0 0 24 24">
+                  <path fill="#EA4335" d="M12 5.04c1.66 0 3.2.57 4.38 1.69l3.27-3.27C17.67 1.53 14.98 1 12 1 7.35 1 3.39 3.65 1.5 7.5l3.92 3.04c.92-2.77 3.51-4.5 6.58-4.5z" />
+                  <path fill="#4285F4" d="M23.49 12.27c0-.81-.07-1.59-.2-2.34H12v4.58h6.43c-.28 1.48-1.12 2.73-2.38 3.58l3.7 2.87c2.16-1.99 3.74-4.92 3.74-8.69z" />
+                  <path fill="#FBBC05" d="M5.42 14.54c-.24-.71-.38-1.47-.38-2.27s.14-1.56.38-2.27L1.5 6.96C.54 8.88 0 11.02 0 13.25c0 2.23.54 4.37 1.5 6.29l3.92-3z" />
+                  <path fill="#34A853" d="M12 23c3.24 0 5.97-1.07 7.96-2.91l-3.7-2.87c-1.03.69-2.34 1.1-4.26 1.1-3.07 0-5.66-1.73-6.58-4.5L1.5 16.86C3.39 20.35 7.35 23 12 23z" />
+                </svg>
+                <span>SIGN IN WITH GOOGLE</span>
+              </button>
+            )}
+          </div>
         </div>
 
-        {/* Footer help */}
-        <div className="mt-8 text-[10px] text-slate-500 font-mono text-center">
-          <div>SECURE KERNEL ENVIRONMENT</div>
-          <div className="mt-1">SYS_ID: f6691938-OS</div>
-        </div>
       </form>
+
+      {/* Google Setup Helper Modal */}
+      {showGoogleModal && (
+        <div className="absolute inset-0 bg-slate-950/80 backdrop-blur-md flex items-center justify-center z-50 animate-fade-in p-4">
+          <div className="w-full max-w-sm glass-panel p-6 rounded-3xl border border-white/10 shadow-2xl flex flex-col space-y-4 text-left select-none">
+            <div className="flex items-center space-x-2 text-indigo-400 font-display font-bold text-sm tracking-wider uppercase">
+              {/* Google SVG */}
+              <svg className="w-5 h-5" viewBox="0 0 24 24">
+                <path fill="#EA4335" d="M12 5.04c1.66 0 3.2.57 4.38 1.69l3.27-3.27C17.67 1.53 14.98 1 12 1 7.35 1 3.39 3.65 1.5 7.5l3.92 3.04c.92-2.77 3.51-4.5 6.58-4.5z" />
+                <path fill="#4285F4" d="M23.49 12.27c0-.81-.07-1.59-.2-2.34H12v4.58h6.43c-.28 1.48-1.12 2.73-2.38 3.58l3.7 2.87c2.16-1.99 3.74-4.92 3.74-8.69z" />
+                <path fill="#FBBC05" d="M5.42 14.54c-.24-.71-.38-1.47-.38-2.27s.14-1.56.38-2.27L1.5 6.96C.54 8.88 0 11.02 0 13.25c0 2.23.54 4.37 1.5 6.29l3.92-3z" />
+                <path fill="#34A853" d="M12 23c3.24 0 5.97-1.07 7.96-2.91l-3.7-2.87c-1.03.69-2.34 1.1-4.26 1.1-3.07 0-5.66-1.73-6.58-4.5L1.5 16.86C3.39 20.35 7.35 23 12 23z" />
+              </svg>
+              <span>Google OAuth Setup</span>
+            </div>
+            
+            <p className="text-[11px] text-slate-400 font-sans leading-relaxed">
+              This application is ready to accept real Google OAuth logins. To activate, register a Client ID in your Google Cloud Console and add it to your <code className="text-pink-400 font-mono">.env</code> file:
+            </p>
+            
+            <div className="bg-slate-950/80 border border-white/5 p-3 rounded-xl font-mono text-[9px] text-indigo-300 break-all select-all">
+              VITE_GOOGLE_CLIENT_ID = your_client_id_here
+            </div>
+
+            <p className="text-[10px] text-slate-500 font-sans italic leading-relaxed">
+              No Client ID yet? Click below to run a simulated authentication flow with a mock Google profile.
+            </p>
+
+            <div className="flex flex-col space-y-2 pt-2">
+              <button
+                type="button"
+                onClick={handleSimulateGoogle}
+                className="w-full py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 active:scale-95 text-white text-xs font-bold uppercase tracking-wider rounded-2xl shadow-[0_4px_12px_rgba(99,102,241,0.3)] transition"
+              >
+                Simulate Google Login
+              </button>
+              
+              <button
+                type="button"
+                onClick={() => setShowGoogleModal(false)}
+                className="w-full py-2 bg-white/5 hover:bg-white/10 active:scale-95 text-slate-400 hover:text-slate-200 text-xs font-bold uppercase tracking-wider rounded-2xl transition"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Simulated Google Service Loader */}
+      {googleLoading && (
+        <div className="absolute inset-0 bg-slate-950/85 backdrop-blur-md flex flex-col items-center justify-center z-50 animate-fade-in">
+          <div className="w-16 h-16 rounded-full border-2 border-indigo-500/10 border-t-indigo-400 animate-spin mb-4" />
+          <span className="text-[10px] font-bold font-display uppercase tracking-widest text-slate-300">
+            CONNECTING GOOGLE SERVICE...
+          </span>
+        </div>
+      )}
     </div>
   );
 };

@@ -7,7 +7,7 @@ interface TerminalLine {
 }
 
 export const TerminalApp: React.FC = () => {
-  const { setTheme, openWindow, unlockAchievement } = useOSStore();
+  const { setTheme, openWindow, unlockAchievement, user } = useOSStore();
   const [history, setHistory] = useState<TerminalLine[]>([
     { text: 'KhushalOS Terminal v4.0.0', type: 'success' },
     { text: 'Type "help" for a list of available system commands.', type: 'output' },
@@ -47,11 +47,13 @@ export const TerminalApp: React.FC = () => {
     return () => window.removeEventListener('terminal_command', handleGlobalCommand);
   }, []);
 
+  const username = user ? user.name.toLowerCase().replace(/\s+/g, '-') : 'guest';
+
   const executeCommand = (cmdStr: string) => {
     const cleanCmd = cmdStr.trim();
     if (!cleanCmd) return;
 
-    const newHistory = [...history, { text: `guest@khushal-os:~$ ${cleanCmd}`, type: 'input' as const }];
+    const newHistory = [...history, { text: `${username}@khushal-os:~$ ${cleanCmd}`, type: 'input' as const }];
     const parts = cleanCmd.split(' ');
     const command = parts[0].toLowerCase();
     const args = parts.slice(1);
@@ -223,7 +225,7 @@ export const TerminalApp: React.FC = () => {
 
       {/* Input row */}
       <div className="flex items-center space-x-2 shrink-0 pt-2 border-t border-white/5 mt-3 select-none">
-        <span className="text-emerald-400 font-bold">guest@khushal-os:~$</span>
+        <span className="text-emerald-400 font-bold">{username}@khushal-os:~$</span>
         <input
           ref={inputRef}
           type="text"

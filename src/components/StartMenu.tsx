@@ -13,7 +13,8 @@ export const StartMenu: React.FC = () => {
     setLocked,
     setBooting,
     achievements,
-    resetSystem
+    resetSystem,
+    user
   } = useOSStore();
 
   const menuRef = useRef<HTMLDivElement>(null);
@@ -137,11 +138,23 @@ export const StartMenu: React.FC = () => {
           {/* User Details */}
           <div className="space-y-4">
             <div className="flex flex-col items-center text-center p-2 rounded-xl bg-white/5 border border-white/5">
-              <div className="w-12 h-12 rounded-full bg-indigo-500/10 border border-indigo-500/30 flex items-center justify-center mb-2 shadow-neon-blue">
-                <User size={20} className="text-indigo-400" />
-              </div>
-              <span className="font-bold text-slate-200 text-[11px] truncate w-full">Khushal Kumar</span>
-              <span className="text-[9px] text-indigo-400 font-mono mt-0.5">Admin</span>
+              {user?.avatar ? (
+                <img 
+                  src={user.avatar} 
+                  alt="avatar" 
+                  className="w-12 h-12 rounded-full border border-indigo-500/30 mb-2 shadow-neon-blue object-cover"
+                />
+              ) : (
+                <div className="w-12 h-12 rounded-full bg-indigo-500/10 border border-indigo-500/30 flex items-center justify-center mb-2 shadow-neon-blue">
+                  <User size={20} className="text-indigo-400" />
+                </div>
+              )}
+              <span className="font-bold text-slate-200 text-[11px] truncate w-full">
+                {user ? user.name : 'Khushal Kumar'}
+              </span>
+              <span className="text-[9px] text-indigo-400 font-mono mt-0.5 truncate w-full">
+                {user ? user.email : 'Admin'}
+              </span>
             </div>
 
             {/* Achievements Stats */}

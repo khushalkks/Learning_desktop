@@ -49,8 +49,10 @@ interface OSState {
   achievements: Achievement[];
   notes: { id: string; title: string; content: string; lastUpdated: string }[];
   voiceActive: boolean;
+  user: { name: string; avatar: string; email: string } | null;
   
   // Actions
+  setUser: (user: { name: string; avatar: string; email: string } | null) => void;
   setBooting: (booting: boolean) => void;
   setLocked: (locked: boolean) => void;
   setTheme: (theme: 'glass' | 'cyberpunk' | 'matrix') => void;
@@ -126,7 +128,16 @@ export const useOSStore = create<OSState>((set, get) => ({
   achievements: defaultAchievements,
   notes: JSON.parse(localStorage.getItem('khushal_os_notes') || '[]'),
   voiceActive: false,
+  user: JSON.parse(localStorage.getItem('khushal_os_user') || 'null'),
 
+  setUser: (user) => {
+    set({ user });
+    if (user) {
+      localStorage.setItem('khushal_os_user', JSON.stringify(user));
+    } else {
+      localStorage.removeItem('khushal_os_user');
+    }
+  },
   setBooting: (booting) => set({ booting }),
   setVoiceActive: (voiceActive) => set({ voiceActive }),
   setLocked: (isLocked) => {
@@ -372,8 +383,10 @@ export const useOSStore = create<OSState>((set, get) => ({
       activeWindowId: null,
       notifications: [],
       achievements: defaultAchievements,
+      user: null,
     });
     localStorage.removeItem('khushal_os_notes');
+    localStorage.removeItem('khushal_os_user');
     get().addNotification('System Reset', 'All settings and achievements have been reset.', 'info');
   }
 }));
