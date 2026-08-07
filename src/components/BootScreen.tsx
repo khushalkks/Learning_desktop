@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useOSStore } from '../store/useOSStore';
-import { Monitor, Terminal, Shield, Cpu, Database, Award } from 'lucide-react';
+import { Monitor, Terminal, Shield, Cpu, Database, Award, User, Lock } from 'lucide-react';
 
 export const BootScreen: React.FC = () => {
   const { setLocked, setBooting, setUser } = useOSStore();
   const [logs, setLogs] = useState<string[]>([]);
   const [progress, setProgress] = useState(0);
   const [bootPhase, setBootPhase] = useState<'bios' | 'login'>('bios');
+  const [usernameInput, setUsernameInput] = useState('');
   const [password, setPassword] = useState('');
   const [isSigningIn, setIsSigningIn] = useState(false);
   const [showGoogleModal, setShowGoogleModal] = useState(false);
@@ -171,12 +172,37 @@ export const BootScreen: React.FC = () => {
     
     // Simulate slight verification delay
     setTimeout(() => {
+      setUser({
+        name: usernameInput || 'Admin User',
+        email: usernameInput ? `${usernameInput.toLowerCase().replace(/\s+/g, '')}@khushal-os.local` : 'admin@khushal-os.local',
+        avatar: ''
+      });
+      setIsSigningIn(false);
       setLocked(false);
       setBooting(false);
-    }, 850);
+    }, 1200);
+  };
+
+  const handleGuestLogin = () => {
+    setIsSigningIn(true);
+    setTimeout(() => {
+      setUser({
+        name: 'Guest Explorer',
+        email: 'guest@khushal-os.local',
+        avatar: ''
+      });
+      setIsSigningIn(false);
+      setLocked(false);
+      setBooting(false);
+    }, 1000);
   };
 
   const skipBoot = () => {
+    setUser({
+      name: 'Admin User',
+      email: 'admin@khushal-os.local',
+      avatar: ''
+    });
     setLocked(false);
     setBooting(false);
   };
@@ -276,38 +302,48 @@ export const BootScreen: React.FC = () => {
           <span className="w-2.5 h-2.5 rounded-full bg-green-500/50"></span>
         </div>
 
-        {/* Profile Avatar */}
-        <div className="w-24 h-24 rounded-full bg-indigo-500/20 border-2 border-indigo-500 flex items-center justify-center mb-6 shadow-neon-blue relative group overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-tr from-indigo-500/20 to-purple-500/20 group-hover:scale-110 transition duration-300" />
-          <Cpu className="text-indigo-400 group-hover:rotate-12 transition duration-300" size={44} />
-        </div>
-
-        {/* User profile detail */}
-        <h2 className="text-xl font-display font-bold tracking-wider text-slate-100 mb-1">
-          KHUSHAL KUMAR SAHU
-        </h2>
-        <p className="text-xs text-indigo-400 font-mono mb-6 uppercase tracking-widest">
-          SYSTEM ADMINISTRATOR
+        {/* System Title */}
+        <h1 className="text-2xl font-display font-black tracking-widest text-slate-100 uppercase mb-1 bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-pink-400">
+          Khushal OS
+        </h1>
+        <p className="text-[9px] text-slate-500 font-mono uppercase tracking-widest mb-6">
+          System Login Shell
         </p>
 
-        {/* Password input block */}
-        <div className="w-full space-y-4">
-          <div className="relative">
+        {/* Input block */}
+        <div className="w-full space-y-3.5">
+          {/* Username Input */}
+          <div className="flex items-center space-x-3 bg-slate-950/60 border border-slate-700/80 focus-within:border-indigo-500 focus-within:ring-1 focus-within:ring-indigo-500 rounded-xl py-2.5 px-4 transition duration-200 group">
+            <User size={14} className="text-slate-500 group-focus-within:text-indigo-400 transition" />
             <input 
-              type="password"
-              placeholder="Press Enter to login..."
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              type="text"
+              placeholder="Username"
+              value={usernameInput}
+              onChange={(e) => setUsernameInput(e.target.value)}
               disabled={isSigningIn}
-              className="w-full bg-slate-950/60 border border-slate-700 rounded-xl py-3 px-4 text-center font-mono text-sm placeholder:text-slate-500 text-indigo-300 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition duration-200"
+              className="flex-1 bg-transparent border-none outline-none font-sans text-xs text-slate-200 placeholder:text-slate-500"
               autoFocus
             />
           </div>
 
+          {/* Password Input */}
+          <div className="flex items-center space-x-3 bg-slate-950/60 border border-slate-700/80 focus-within:border-indigo-500 focus-within:ring-1 focus-within:ring-indigo-500 rounded-xl py-2.5 px-4 transition duration-200 group">
+            <Lock size={14} className="text-slate-500 group-focus-within:text-indigo-400 transition" />
+            <input 
+              type="password"
+              placeholder="Password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              disabled={isSigningIn}
+              className="flex-1 bg-transparent border-none outline-none font-sans text-xs text-slate-200 placeholder:text-slate-500"
+            />
+          </div>
+
+          {/* Sign In Button */}
           <button
             type="submit"
             disabled={isSigningIn}
-            className="w-full bg-indigo-600 hover:bg-indigo-500 disabled:bg-indigo-800 text-white font-semibold py-3 rounded-xl transition duration-200 shadow-lg hover:shadow-neon-blue flex items-center justify-center space-x-2"
+            className="w-full bg-indigo-600 hover:bg-indigo-500 disabled:bg-indigo-800 text-white font-semibold py-3 rounded-xl transition duration-200 shadow-lg hover:shadow-neon-blue flex items-center justify-center space-x-2 text-xs uppercase tracking-wider font-display"
           >
             {isSigningIn ? (
               <>
@@ -350,6 +386,15 @@ export const BootScreen: React.FC = () => {
             )}
           </div>
         </div>
+
+        {/* Guest Mode Trigger */}
+        <button
+          type="button"
+          onClick={handleGuestLogin}
+          className="w-full mt-4 text-[10px] text-slate-500 hover:text-indigo-400 transition duration-150 font-mono uppercase tracking-widest text-center hover:underline focus:outline-none"
+        >
+          Guest Mode
+        </button>
 
       </form>
 
