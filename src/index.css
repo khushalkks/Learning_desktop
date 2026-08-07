@@ -1,0 +1,170 @@
+@import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Rajdhani:wght@500;600;700&display=swap');
+
+@layer base {
+  body {
+    @apply m-0 p-0 overflow-hidden font-sans select-none h-screen w-screen bg-slate-950 text-slate-100;
+  }
+}
+
+/* Custom Themes and Utilities */
+:root {
+  --os-bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%);
+  --os-panel-bg: rgba(15, 23, 42, 0.45);
+  --os-panel-border: rgba(255, 255, 255, 0.08);
+  --os-accent: #6366f1;
+  --os-accent-glow: rgba(99, 102, 241, 0.4);
+  --os-text: #f8fafc;
+  --os-text-muted: #94a3b8;
+  --os-shadow-neon: 0 0 20px rgba(99, 102, 241, 0.15);
+  --os-shadow-neon-strong: 0 0 35px rgba(99, 102, 241, 0.3);
+}
+
+.theme-glass {
+  --os-bg-gradient: radial-gradient(circle at center, #1e1b4b 0%, #09090b 100%);
+  --os-panel-bg: rgba(15, 23, 42, 0.4);
+  --os-panel-border: rgba(255, 255, 255, 0.08);
+  --os-accent: #3b82f6;
+  --os-accent-glow: rgba(59, 130, 246, 0.4);
+  --os-text: #f8fafc;
+  --os-text-muted: #94a3b8;
+  --os-shadow-neon: 0 0 20px rgba(59, 130, 246, 0.15);
+  --os-shadow-neon-strong: 0 0 35px rgba(59, 130, 246, 0.35);
+}
+
+.theme-cyberpunk {
+  --os-bg-gradient: linear-gradient(135deg, #120024 0%, #030008 100%);
+  --os-panel-bg: rgba(18, 0, 36, 0.65);
+  --os-panel-border: rgba(236, 72, 153, 0.3);
+  --os-accent: #ec4899;
+  --os-accent-glow: rgba(236, 72, 153, 0.5);
+  --os-text: #00ffff;
+  --os-text-muted: #a21caf;
+  --os-shadow-neon: 0 0 20px rgba(236, 72, 153, 0.25);
+  --os-shadow-neon-strong: 0 0 35px rgba(236, 72, 153, 0.45);
+  text-shadow: 0 0 5px rgba(0, 255, 255, 0.3);
+}
+
+.theme-matrix {
+  --os-bg-gradient: radial-gradient(circle at center, #022c22 0%, #000000 100%);
+  --os-panel-bg: rgba(0, 0, 0, 0.85);
+  --os-panel-border: rgba(34, 197, 94, 0.3);
+  --os-accent: #22c55e;
+  --os-accent-glow: rgba(34, 197, 94, 0.6);
+  --os-text: #22c55e;
+  --os-text-muted: #15803d;
+  --os-shadow-neon: 0 0 20px rgba(34, 197, 94, 0.3);
+  --os-shadow-neon-strong: 0 0 35px rgba(34, 197, 94, 0.55);
+  font-family: 'Fira Code', monospace !important;
+  text-shadow: 0 0 5px rgba(34, 197, 94, 0.5);
+}
+
+/* Glassmorphism Classes */
+.glass-panel {
+  background: var(--os-panel-bg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--os-panel-border);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.glass-panel-heavy {
+  background: rgba(10, 10, 15, 0.75);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid var(--os-panel-border);
+  box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.5), var(--os-shadow-neon);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.glass-panel-focused {
+  border-color: var(--os-accent);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.35), var(--os-shadow-neon-strong);
+}
+
+.glow-accent {
+  box-shadow: 0 0 15px var(--os-accent-glow);
+}
+
+/* CRT Screen Effect overlay */
+.crt-overlay::after {
+  content: " ";
+  display: block;
+  position: absolute;
+  top: 0; left: 0; bottom: 0; right: 0;
+  background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+  z-index: 99999;
+  background-size: 100% 4px, 6px 100%;
+  pointer-events: none;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--os-accent);
+  opacity: 0.6;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--os-accent);
+  opacity: 0.9;
+}
+
+/* Windows border dragging handle resizing styles */
+.resize-handle {
+  position: absolute;
+  z-index: 10;
+}
+.resize-handle-r { top: 0; right: 0; width: 6px; height: 100%; cursor: col-resize; }
+.resize-handle-l { top: 0; left: 0; width: 6px; height: 100%; cursor: col-resize; }
+.resize-handle-b { bottom: 0; left: 0; width: 100%; height: 6px; cursor: row-resize; }
+.resize-handle-t { top: 0; left: 0; width: 100%; height: 6px; cursor: row-resize; }
+.resize-handle-br { bottom: 0; right: 0; width: 12px; height: 12px; cursor: nwse-resize; }
+.resize-handle-bl { bottom: 0; left: 0; width: 12px; height: 12px; cursor: nesw-resize; }
+
+/* Matrix Rain Canvas */
+.matrix-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  opacity: 0.15;
+  z-index: 0;
+}
+
+/* Ambient Background Drift Animation */
+@keyframes ambientDrift {
+  0% {
+    transform: translate(0px, 0px) scale(1);
+  }
+  33% {
+    transform: translate(40px, -60px) scale(1.15);
+  }
+  66% {
+    transform: translate(-30px, 30px) scale(0.9);
+  }
+  100% {
+    transform: translate(0px, 0px) scale(1);
+  }
+}
+
+.animate-blob-1 {
+  animation: ambientDrift 22s infinite ease-in-out;
+}
+
+.animate-blob-2 {
+  animation: ambientDrift 28s infinite ease-in-out alternate;
+}
